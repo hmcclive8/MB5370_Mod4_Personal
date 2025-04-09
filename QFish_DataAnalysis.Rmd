@@ -1,0 +1,114 @@
+---
+title: "QFishData_OtterTrawls"
+author: "Hannah McClive"
+date: "2025-04-09"
+output: html_document
+---
+
+Assignment. End-to-end data analysis in R.
+
+In this assignment, we will use real-world marine data collected as part of Queensland fisheries QFISH database to develop
+a report (either written on your website or via an R Markdown report embedded in your website) suitable for reporting to 
+your manager, a community group or for your own research.
+
+Part 1. First, obtain your data. 
+Go to QFISH and review all of the available datasets that you could analyse. 
+Here you will note that there are summaries available - I suggest a dataset that has 
+both summaries and catch information in space (like regions) and by species. 
+For example, selecting the Shark Control Program tab at left, then selecting the number 
+caught by area, calendar year and species group offers a data table by species, year and region.
+
+Identify the dataset you want to analyse
+Export the dataset in an appropriate format for R.
+Use your Github repo to save the data in an appropriate place.
+Ensure you sync your github regularly by committing and pushing to the remote repository.
+
+Part 2. Tidy the data.
+Using the tidyverse, get your data ready for making a plot.
+Use R Markdown to write your analysis up as a report that shows all of the steps 
+you used to import the data and plot it. 
+(Note: it’s ok if you want to simply use a script - in this case build your report directly on your website).
+
+Develop a time-series (or any other plot) that you want to make.
+For some useful advice, you can use the resources provided earlier in this book, 
+or the excellent ggplot2 page of the Ocean Health Index website.
+Export your plot in a format suitable to put on your e-portfolio.
+
+Part 3. Add your plot and markdown report to your e-portfolio
+In a section of your website, add your full report that details your analysis, 
+where you got the data, and the analysis you developed (in sections, follow good coding style!) 
+to get there.
+Finally, include your plot together with a detailed caption of what your plot shows.
+Your final e-portfolio should be suitable for sharing with a colleague or the public, 
+so that they can understand the dataset you have presented to them.
+
+```{r}
+# Loading and renaming QFish data (imported as excel file)
+QFishData <- MB5370_Mod4_QFish
+```
+
+```{r}
+# Installing and checking for relevant packages
+library(tidyverse)
+```
+
+```{r}
+# Clean column names 
+QFishData <- QFishData %>%
+  rename(
+    Year = CalendarYear,
+    Catch_tonnes = Tonnes,
+    Fishing_days = Days
+  ) %>%
+  filter(!is.na(Year)) %>%
+  mutate(Year = as.numeric(Year))
+```
+```{r}
+library(tidyverse)
+library(readxl)
+
+#QFishData <- read_excel("MB5370_Mod4_QFish.xlsx") %>%
+ # rename(
+  #  Year = CalendarYear,
+   # Catch_tonnes = Tonnes,
+    #Fishing_days = Days
+ # )
+
+# Check for non-numeric values in Year
+print(unique(QFishData$Year))
+
+# Force Year to numeric and remove problem rows
+QFishData <- QFishData %>%
+  mutate(Year = as.numeric(Year)) %>%
+  filter(!is.na(Year))
+
+# Confirm it worked
+print(range(QFishData$Year))
+```
+
+```{r}
+QFishFiltered <- QFishData %>%
+  filter(Catch_tonnes < 100000)
+```
+
+```{r}
+ggplot(QFishFiltered, aes(x = Year, y = Catch_tonnes)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(color = "darkblue") +
+  scale_x_continuous(
+    breaks = seq(min(QFishFiltered$Year), max(QFishFiltered$Year), by = 2)
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Total Catch Over Time",
+    x = "Year",
+    y = "Catch (Tonnes)",
+    caption = "Source: QFish Dataset"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold", size = 16)
+  )
+```
+
